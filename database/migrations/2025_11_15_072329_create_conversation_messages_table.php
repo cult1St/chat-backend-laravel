@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignIdFor(ConversationMessage::class, 'reply_id')->nullable();
             $table->longText('message')->nullable();
             $table->enum('type', ['message', 'photo', 'file'])->default('message');
-            $table->enum('status', ['active', 'inactive', 'blocked', 'deleted'])->default('active');
+            $table->enum('status', ['sent', 'delivered', 'seen', 'active', 'inactive', 'blocked', 'deleted'])->default('active');
             $table->timestamps();
         });
     }

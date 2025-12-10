@@ -29,12 +29,13 @@ class ChatsResource extends JsonResource
             ->whereNot('user_id', $userId)
             ->with('user')
             ->first();
-        $contact = Contact::where('inviter_id', $otherPaticipant->user?->id)->where('invitee_id', $userId)->first();
+        $contact = Contact::where('invitee_id', $otherPaticipant->user?->id)->where('inviter_id', $userId)->first();
         if(!$otherPaticipant) return [];
         return [
             'id' => $conversationId,
             'display_name' => $contact ? $contact->name : $otherPaticipant->user?->phone,
             'full_name' => $contact ? $contact->name : $otherPaticipant->user?->first_name ." ". $otherPaticipant->user?->last_name,
+            'phone' => $otherPaticipant->user?->phone,
             'image' => $otherPaticipant->user?->profile_photo_path,
             'last_message' => $this->resource?->conversation->last_message
         ];

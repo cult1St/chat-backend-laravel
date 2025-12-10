@@ -14,4 +14,8 @@ class ConversationMessage extends Model
         'type',
         'status'
     ];
+
+    public function conversation(){
+        return $this->belongsTo(Conversation::class);
+    }
 }

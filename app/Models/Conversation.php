@@ -19,4 +19,12 @@ class Conversation extends Model
     protected $casts = [
         'last_message_sent' => 'object'
     ];
+
+    public function participants(){
+        return $this->hasMany(ConversationParticipant::class);
+    }
+
+    public function messages(){
+        return $this->hasMany(ConversationMessage::class);
+    }
 }

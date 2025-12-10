@@ -18,6 +18,8 @@ Route::prefix('users')->middleware('auth:sanctum')->group(function(){
     //chat
     Route::controller(ChatController::class)->prefix('chats')->group(function(){
         Route::get('/', 'index');
+        Route::get('/messages/{phone}', 'messagesWith' );
+        Route::post('/send-message', 'sendMessage' );
     });
 
     Route::controller(ContactController::class)->prefix('contacts')->group(function(){
