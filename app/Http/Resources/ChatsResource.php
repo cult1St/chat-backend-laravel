@@ -34,7 +34,7 @@ class ChatsResource extends JsonResource
         return [
             'id' => $conversationId,
             'display_name' => $contact ? $contact->name : $otherPaticipant->user?->phone,
-            'full_name' => $contact ? $contact->name : $otherPaticipant->user?->first_name ." ". $otherPaticipant->user?->last_name,
+            'full_name' => $contact ? $contact->name : $otherPaticipant->user?->full_name,
             'phone' => $otherPaticipant->user?->phone,
             'image' => $otherPaticipant->user?->profile_photo_path,
             'last_message' => $this->resource?->conversation->last_message

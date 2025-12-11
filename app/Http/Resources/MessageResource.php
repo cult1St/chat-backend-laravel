@@ -40,7 +40,7 @@ class MessageResource extends JsonResource
         $chat = [
             "id" => $creator?->id,
             'display_name' => $contact ? $contact->name : $creator->user?->phone,
-            'full_name' => $contact ? $contact->name : $creator->user?->first_name . " " . $creator->user?->last_name,
+            'full_name' => $contact ? $contact->name : $creator->user?->full_name,
             'phone' => $creator->user?->phone,
             'image' => $creator->user?->profile_photo_path,
         ];
