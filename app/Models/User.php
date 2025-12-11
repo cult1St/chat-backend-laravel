@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable 
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
@@ -53,5 +53,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
- 
+
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
 }

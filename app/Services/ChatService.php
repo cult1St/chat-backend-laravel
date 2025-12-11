@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\MessageSent;
 use App\Http\Resources\ChatsResource;
 use App\Models\Conversation;
 use App\Models\ConversationParticipant;
@@ -64,6 +65,9 @@ class ChatService
         //update last message in conversation
         $conversation->last_message_sent = $message->message;
         $conversation->save();
+
+        //broadcast event
+        broadcast( new MessageSent($message) )->toOthers();
         return $message;
     }
 
