@@ -19,7 +19,7 @@ class MessageResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+    public function toArray(?Request $request): array
     {
         //create a formatted time from the created at
         $userId = Auth::id();

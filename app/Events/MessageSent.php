@@ -9,6 +9,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Support\Facades\Log;
 
 class MessageSent implements ShouldBroadcast
 {
@@ -21,8 +22,13 @@ class MessageSent implements ShouldBroadcast
      */
     public function __construct(ConversationMessage $conversationMessage)
     {
-        // Important: SerializesModels ensures model IDs are stored, not objects.
         $this->conversationMessage = $conversationMessage;
+
+        Log::info('MessageSent event constructed', [
+            'message_id' => $conversationMessage->id ?? null,
+            'conversation_id' => $conversationMessage->conversation_id ?? null,
+            'sender_id' => $conversationMessage->user_id ?? null,
+        ]);
     }
 
     /**
@@ -30,15 +36,32 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        // Find the receiver (the participant that isn’t the sender)
-        $receiverId = $this->conversationMessage
+        // Find the receiver participant (not the sender)
+        $receiverParticipant = $this->conversationMessage
             ->conversation
             ->participants()
             ->where('user_id', '!=', $this->conversationMessage->user_id)
-            ->value('user_id');
+            ->with('user') // Eager load user for phone access
+            ->first();
+
+        if (!$receiverParticipant || !$receiverParticipant->user || !$receiverParticipant->user->phone) {
+            Log::error('MessageSent: Receiver phone not found, skipping broadcast', [
+                'message_id' => $this->conversationMessage->id ?? null,
+                'receiver_participant_id' => $receiverParticipant->id ?? null,
+            ]);
+            return []; // No channels to broadcast on
+        }
+
+        $receiverPhone = $receiverParticipant->user->phone;
+        $channelName = "chat-messages.{$receiverPhone}";
+
+        Log::info('MessageSent broadcastOn resolved channel', [
+            'receiver_phone' => $receiverPhone,
+            'channel' => $channelName,
+        ]);
 
         return [
-            new PrivateChannel("chat-messages.{$receiverId}")
+            new PrivateChannel($channelName)
         ];
     }
 
@@ -55,6 +78,21 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
-        return (new MessageResource($this->conversationMessage))->toArray(request());
+        try {
+            $payload = (new MessageResource($this->conversationMessage))->toArray(null);
+
+            Log::info('MessageSent broadcasting payload', [
+                'message_id' => $this->conversationMessage->id ?? null,
+                'payload' => $payload, // Log full payload for debugging; remove in production if sensitive
+            ]);
+
+            return $payload;
+        } catch (\Exception $e) {
+            Log::error('MessageSent: Failed to generate payload', [
+                'message_id' => $this->conversationMessage->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+            return []; // Return empty payload to avoid crashes
+        }
     }
 }

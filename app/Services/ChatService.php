@@ -9,6 +9,7 @@ use App\Models\ConversationParticipant;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
 class ChatService
@@ -66,8 +67,21 @@ class ChatService
         $conversation->last_message_sent = $message->message;
         $conversation->save();
 
+        // log before broadcasting
+        Log::info('Dispatching MessageSent event', [
+            'message_id' => $message->id ?? null,
+            'conversation_id' => $conversation->id ?? null,
+            'sender_id' => $user->id ?? null,
+            'recipient_phone' => $phone,
+        ]);
+
         //broadcast event
         broadcast( new MessageSent($message) )->toOthers();
+
+        Log::info('MessageSent event dispatched', [
+            'message_id' => $message->id ?? null,
+        ]);
+
         return $message;
     }
 
